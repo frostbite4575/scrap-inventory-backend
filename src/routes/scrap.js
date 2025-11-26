@@ -1,0 +1,185 @@
+const express = require('express');
+const router = express.Router();
+const ScrapPiece = require('../models/ScrapPiece');
+const { authenticate } = require('../middleware/auth');
+
+// For now, we'll skip authentication to make testing easier
+// Later we can uncomment the authenticate middleware
+
+// GET all scrap pieces (with filtering)
+router.get('/', async (req, res) => {
+  try {
+    const {
+      minLength,
+      maxLength,
+      minWidth,
+      maxWidth,
+      thickness,
+      materialGrade,
+      status,
+      location
+    } = req.query;
+
+    // Build filter object
+    let filter = {};
+
+    if (minLength) filter.length = { ...filter.length, $gte: parseFloat(minLength) };
+    if (maxLength) filter.length = { ...filter.length, $lte: parseFloat(maxLength) };
+    if (minWidth) filter.width = { ...filter.width, $gte: parseFloat(minWidth) };
+    if (maxWidth) filter.width = { ...filter.width, $lte: parseFloat(maxWidth) };
+    if (thickness) filter.thickness = parseFloat(thickness);
+    if (materialGrade) filter.materialGrade = materialGrade;
+    if (status) filter.status = status;
+    if (location) filter.location = new RegExp(location, 'i'); // Case-insensitive search
+
+    const scrapPieces = await ScrapPiece.find(filter)
+      .sort({ dateAdded: -1 }); // Newest first
+
+    res.json({
+      count: scrapPieces.length,
+      data: scrapPieces
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// GET single scrap piece by ID
+router.get('/:id', async (req, res) => {
+  try {
+    const scrapPiece = await ScrapPiece.findById(req.params.id);
+    
+    if (!scrapPiece) {
+      return res.status(404).json({ message: 'Scrap piece not found' });
+    }
+
+    res.json(scrapPiece);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// POST create new scrap piece
+router.post('/', async (req, res) => {
+  try {
+    const scrapPiece = new ScrapPiece({
+      length: req.body.length,
+      width: req.body.width,
+      thickness: req.body.thickness,
+      materialGrade: req.body.materialGrade,
+      location: req.body.location,
+      addedBy: req.body.addedBy || 'Unknown', // In production, get from req.user
+      notes: req.body.notes
+    });
+
+    const newScrapPiece = await scrapPiece.save();
+    res.status(201).json(newScrapPiece);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// PUT update scrap piece
+router.put('/:id', async (req, res) => {
+  try {
+    const scrapPiece = await ScrapPiece.findById(req.params.id);
+    
+    if (!scrapPiece) {
+      return res.status(404).json({ message: 'Scrap piece not found' });
+    }
+
+    // Update fields if provided
+    if (req.body.length !== undefined) scrapPiece.length = req.body.length;
+    if (req.body.width !== undefined) scrapPiece.width = req.body.width;
+    if (req.body.thickness !== undefined) scrapPiece.thickness = req.body.thickness;
+    if (req.body.materialGrade !== undefined) scrapPiece.materialGrade = req.body.materialGrade;
+    if (req.body.location !== undefined) scrapPiece.location = req.body.location;
+    if (req.body.notes !== undefined) scrapPiece.notes = req.body.notes;
+
+    const updatedScrapPiece = await scrapPiece.save();
+    res.json(updatedScrapPiece);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// POST reserve a scrap piece for a job
+router.post('/:id/reserve', async (req, res) => {
+  try {
+    const scrapPiece = await ScrapPiece.findById(req.params.id);
+    
+    if (!scrapPiece) {
+      return res.status(404).json({ message: 'Scrap piece not found' });
+    }
+
+    if (scrapPiece.status !== 'available') {
+      return res.status(400).json({ 
+        message: `Cannot reserve - piece is already ${scrapPiece.status}` 
+      });
+    }
+
+    scrapPiece.status = 'reserved';
+    scrapPiece.reservedFor = req.body.jobNumber || req.body.reservedFor;
+    scrapPiece.reservedDate = new Date();
+
+    const updatedScrapPiece = await scrapPiece.save();
+    res.json(updatedScrapPiece);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// POST unreserve a scrap piece
+router.post('/:id/unreserve', async (req, res) => {
+  try {
+    const scrapPiece = await ScrapPiece.findById(req.params.id);
+    
+    if (!scrapPiece) {
+      return res.status(404).json({ message: 'Scrap piece not found' });
+    }
+
+    if (scrapPiece.status !== 'reserved') {
+      return res.status(400).json({ 
+        message: 'Piece is not currently reserved' 
+      });
+    }
+
+    scrapPiece.status = 'available';
+    scrapPiece.reservedFor = null;
+    scrapPiece.reservedDate = null;
+
+    const updatedScrapPiece = await scrapPiece.save();
+    res.json(updatedScrapPiece);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// DELETE mark scrap piece as used (soft delete)
+router.delete('/:id', async (req, res) => {
+  try {
+    const scrapPiece = await ScrapPiece.findById(req.params.id);
+    
+    if (!scrapPiece) {
+      return res.status(404).json({ message: 'Scrap piece not found' });
+    }
+
+    // Mark as used instead of deleting
+    scrapPiece.status = 'used';
+    scrapPiece.usedDate = new Date();
+    
+    await scrapPiece.save();
+    res.json({ message: 'Scrap piece marked as used', data: scrapPiece });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// GET available material grades
+router.get('/meta/grades', (req, res) => {
+  res.json({
+    grades: ['A36', 'A572-50', '304SS', '316SS', '5052-H32', '6061-T6']
+  });
+});
+
+module.exports = router;
