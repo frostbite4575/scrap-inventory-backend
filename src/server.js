@@ -21,13 +21,15 @@ app.use((req, res, next) => {
 
 // Basic test route
 app.get('/', (req, res) => {
-  res.json({ 
+  res.json({
     message: 'Scrap Inventory API is running',
     version: '1.0.0',
     endpoints: {
       auth: '/api/auth',
       scrap: '/api/scrap',
-      dashboard: '/api/dashboard'
+      dashboard: '/api/dashboard',
+      sawMaterial: '/api/saw-material',
+      sawDashboard: '/api/saw-dashboard'
     }
   });
 });
@@ -36,6 +38,8 @@ app.get('/', (req, res) => {
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/scrap', require('./routes/scrap'));
 app.use('/api/dashboard', require('./routes/dashboard'));
+app.use('/api/saw-material', require('./routes/sawMaterial'));
+app.use('/api/saw-dashboard', require('./routes/sawDashboard'));
 
 // 404 handler
 app.use((req, res) => {
