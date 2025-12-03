@@ -2,9 +2,37 @@ const express = require('express');
 const router = express.Router();
 const SawMaterial = require('../models/SawMaterial');
 const { authenticate } = require('../middleware/auth');
+const { getMaterialsByType, getMaterialById, getMaterialTypes } = require('../config/materialCatalog');
 
 // For now, we'll skip authentication to make testing easier
 // Later we can uncomment the authenticate middleware
+
+// GET material catalog - all available materials in shop
+// MUST be before /:id route to avoid conflict
+router.get('/catalog', (req, res) => {
+  const { type } = req.query;
+
+  if (type) {
+    // Get materials for a specific type
+    const materials = getMaterialsByType(type);
+    res.json({ type, materials });
+  } else {
+    // Get all material types
+    const types = getMaterialTypes();
+    res.json({ types });
+  }
+});
+
+// GET specific material from catalog by ID
+router.get('/catalog/:materialId', (req, res) => {
+  const material = getMaterialById(req.params.materialId);
+
+  if (!material) {
+    return res.status(404).json({ message: 'Material not found in catalog' });
+  }
+
+  res.json(material);
+});
 
 // GET all saw materials (with filtering)
 router.get('/', async (req, res) => {
@@ -64,7 +92,14 @@ router.get('/:id', async (req, res) => {
 // POST create new saw material
 router.post('/', async (req, res) => {
   try {
+    // Verify the catalog material exists
+    const catalogMaterial = getMaterialById(req.body.catalogMaterialId);
+    if (!catalogMaterial) {
+      return res.status(400).json({ message: 'Invalid catalog material ID' });
+    }
+
     const sawMaterial = new SawMaterial({
+      catalogMaterialId: req.body.catalogMaterialId,
       materialType: req.body.materialType,
       length: req.body.length,
       dim1: req.body.dim1,
