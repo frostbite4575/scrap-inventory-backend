@@ -4,6 +4,7 @@ const SawMaterial = require('../models/SawMaterial');
 const { authenticate } = require('../middleware/auth');
 const { getMaterialsByType, getMaterialById, getMaterialTypes } = require('../config/materialCatalog');
 const { getAreas, getSections, getBins, buildLocationString } = require('../config/locationCatalog');
+const { generateReservationId } = require('../utils/reservationId');
 
 // For now, we'll skip authentication to make testing easier
 // Later we can uncomment the authenticate middleware
@@ -63,7 +64,8 @@ router.get('/', async (req, res) => {
       location,
       dim1,
       dim2,
-      dim3
+      dim3,
+      reservationId
     } = req.query;
 
     // Build filter object
@@ -78,6 +80,7 @@ router.get('/', async (req, res) => {
     if (dim1) filter.dim1 = parseFloat(dim1);
     if (dim2) filter.dim2 = parseFloat(dim2);
     if (dim3) filter.dim3 = parseFloat(dim3);
+    if (reservationId) filter.reservationId = new RegExp(reservationId, 'i'); // Case-insensitive search
 
     const sawMaterials = await SawMaterial.find(filter)
       .sort({ dateAdded: -1 }); // Newest first
@@ -178,8 +181,18 @@ router.post('/:id/reserve', async (req, res) => {
       });
     }
 
+    // Generate unique reservation ID
+    let reservationId;
+    let isUnique = false;
+    while (!isUnique) {
+      reservationId = generateReservationId();
+      const existing = await SawMaterial.findOne({ reservationId });
+      if (!existing) isUnique = true;
+    }
+
     sawMaterial.status = 'reserved';
     sawMaterial.reservedFor = req.body.jobNumber || req.body.reservedFor;
+    sawMaterial.reservationId = reservationId;
     sawMaterial.reservedDate = new Date();
 
     const updatedSawMaterial = await sawMaterial.save();
@@ -206,6 +219,7 @@ router.post('/:id/unreserve', async (req, res) => {
 
     sawMaterial.status = 'available';
     sawMaterial.reservedFor = null;
+    sawMaterial.reservationId = null;
     sawMaterial.reservedDate = null;
 
     const updatedSawMaterial = await sawMaterial.save();

@@ -4,6 +4,7 @@ const ScrapPiece = require('../models/ScrapPiece');
 const { authenticate } = require('../middleware/auth');
 const { getMaterialsByType, getMaterialById, getMaterialTypes } = require('../config/plateCatalog');
 const { getAreas, getSections, getBins, buildLocationString } = require('../config/locationCatalog');
+const { generateReservationId } = require('../utils/reservationId');
 
 // For now, we'll skip authentication to make testing easier
 // Later we can uncomment the authenticate middleware
@@ -58,7 +59,8 @@ router.get('/', async (req, res) => {
       thickness,
       materialGrade,
       status,
-      location
+      location,
+      reservationId
     } = req.query;
 
     // Build filter object
@@ -72,6 +74,7 @@ router.get('/', async (req, res) => {
     if (materialGrade) filter.materialGrade = materialGrade;
     if (status) filter.status = status;
     if (location) filter.location = new RegExp(location, 'i'); // Case-insensitive search
+    if (reservationId) filter.reservationId = new RegExp(reservationId, 'i'); // Case-insensitive search
 
     const scrapPieces = await ScrapPiece.find(filter)
       .sort({ dateAdded: -1 }); // Newest first
@@ -155,19 +158,29 @@ router.put('/:id', async (req, res) => {
 router.post('/:id/reserve', async (req, res) => {
   try {
     const scrapPiece = await ScrapPiece.findById(req.params.id);
-    
+
     if (!scrapPiece) {
       return res.status(404).json({ message: 'Scrap piece not found' });
     }
 
     if (scrapPiece.status !== 'available') {
-      return res.status(400).json({ 
-        message: `Cannot reserve - piece is already ${scrapPiece.status}` 
+      return res.status(400).json({
+        message: `Cannot reserve - piece is already ${scrapPiece.status}`
       });
+    }
+
+    // Generate unique reservation ID
+    let reservationId;
+    let isUnique = false;
+    while (!isUnique) {
+      reservationId = generateReservationId();
+      const existing = await ScrapPiece.findOne({ reservationId });
+      if (!existing) isUnique = true;
     }
 
     scrapPiece.status = 'reserved';
     scrapPiece.reservedFor = req.body.jobNumber || req.body.reservedFor;
+    scrapPiece.reservationId = reservationId;
     scrapPiece.reservedDate = new Date();
 
     const updatedScrapPiece = await scrapPiece.save();
@@ -194,6 +207,7 @@ router.post('/:id/unreserve', async (req, res) => {
 
     scrapPiece.status = 'available';
     scrapPiece.reservedFor = null;
+    scrapPiece.reservationId = null;
     scrapPiece.reservedDate = null;
 
     const updatedScrapPiece = await scrapPiece.save();

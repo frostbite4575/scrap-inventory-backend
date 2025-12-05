@@ -96,6 +96,13 @@ const sawMaterialSchema = new mongoose.Schema({
     trim: true
   },
 
+  reservationId: {
+    type: String,
+    trim: true,
+    sparse: true,
+    unique: true
+  },
+
   reservedDate: {
     type: Date
   },
@@ -145,5 +152,6 @@ sawMaterialSchema.index({ materialType: 1, status: 1 });
 sawMaterialSchema.index({ materialGrade: 1, status: 1 });
 sawMaterialSchema.index({ status: 1 });
 sawMaterialSchema.index({ location: 1 });
+sawMaterialSchema.index({ reservationId: 1 });
 
 module.exports = mongoose.model('SawMaterial', sawMaterialSchema);

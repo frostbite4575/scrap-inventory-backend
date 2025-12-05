@@ -50,15 +50,21 @@ const scrapPieceSchema = new mongoose.Schema({
     enum: ['available', 'reserved', 'used'],
     default: 'available'
   },
-  reservedFor: { 
+  reservedFor: {
     type: String,
     trim: true
   },
-  reservedDate: { 
-    type: Date 
+  reservationId: {
+    type: String,
+    trim: true,
+    sparse: true,
+    unique: true
   },
-  usedDate: { 
-    type: Date 
+  reservedDate: {
+    type: Date
+  },
+  usedDate: {
+    type: Date
   }
 }, {
   timestamps: true,
@@ -75,5 +81,6 @@ scrapPieceSchema.virtual('area').get(function() {
 scrapPieceSchema.index({ materialGrade: 1, status: 1 });
 scrapPieceSchema.index({ thickness: 1 });
 scrapPieceSchema.index({ status: 1 });
+scrapPieceSchema.index({ reservationId: 1 });
 
 module.exports = mongoose.model('ScrapPiece', scrapPieceSchema);
