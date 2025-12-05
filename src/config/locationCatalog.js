@@ -2,8 +2,8 @@
  * Location Catalog
  *
  * Hierarchical structure for material storage locations:
- * - Area (Plasma)
- *   - Section (Plasma 1, Plasma 2)
+ * - Area (Plasma, Saw)
+ *   - Section (Plasma 1, Plasma 2, Trailer 1)
  *     - Bin (Y-1, Y-2, B-1, B-2, etc.)
  */
 
@@ -18,6 +18,15 @@ const locationCatalog = {
       'plasma-2': {
         name: 'Plasma 2',
         bins: ['B-1', 'B-2', 'B-3', 'B-4', 'B-5', 'B-6']
+      }
+    }
+  },
+  saw: {
+    name: 'Saw',
+    sections: {
+      'trailer-1': {
+        name: 'Trailer 1',
+        bins: ['Trailer 1']
       }
     }
   }
