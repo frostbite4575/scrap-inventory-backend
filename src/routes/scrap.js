@@ -2,9 +2,33 @@ const express = require('express');
 const router = express.Router();
 const ScrapPiece = require('../models/ScrapPiece');
 const { authenticate } = require('../middleware/auth');
+const { getMaterialsByType, getMaterialById, getMaterialTypes } = require('../config/plateCatalog');
 
 // For now, we'll skip authentication to make testing easier
 // Later we can uncomment the authenticate middleware
+
+// Catalog endpoints - MUST be before /:id route to avoid conflict
+router.get('/catalog', (req, res) => {
+  const { type } = req.query;
+
+  if (type) {
+    const materials = getMaterialsByType(type);
+    res.json({ type, materials });
+  } else {
+    const types = getMaterialTypes();
+    res.json({ types });
+  }
+});
+
+router.get('/catalog/:materialId', (req, res) => {
+  const material = getMaterialById(req.params.materialId);
+
+  if (!material) {
+    return res.status(404).json({ message: 'Material not found in catalog' });
+  }
+
+  res.json(material);
+});
 
 // GET all scrap pieces (with filtering)
 router.get('/', async (req, res) => {
@@ -62,7 +86,14 @@ router.get('/:id', async (req, res) => {
 // POST create new scrap piece
 router.post('/', async (req, res) => {
   try {
+    // Validate catalog material exists
+    const catalogMaterial = getMaterialById(req.body.catalogMaterialId);
+    if (!catalogMaterial) {
+      return res.status(400).json({ message: 'Invalid catalog material ID' });
+    }
+
     const scrapPiece = new ScrapPiece({
+      catalogMaterialId: req.body.catalogMaterialId,
       length: req.body.length,
       width: req.body.width,
       thickness: req.body.thickness,

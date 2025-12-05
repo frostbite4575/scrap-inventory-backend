@@ -1,26 +1,31 @@
 const mongoose = require('mongoose');
 
 const scrapPieceSchema = new mongoose.Schema({
-  length: { 
-    type: Number, 
+  catalogMaterialId: {
+    type: String,
+    required: [true, 'Catalog material ID is required'],
+    trim: true
+  },
+  length: {
+    type: Number,
     required: [true, 'Length is required'],
     min: [0, 'Length must be positive']
   },
-  width: { 
-    type: Number, 
+  width: {
+    type: Number,
     required: [true, 'Width is required'],
     min: [0, 'Width must be positive']
   },
-  thickness: { 
-    type: Number, 
+  thickness: {
+    type: Number,
     required: [true, 'Thickness is required'],
     min: [0, 'Thickness must be positive']
   },
-  materialGrade: { 
-    type: String, 
+  materialGrade: {
+    type: String,
     required: [true, 'Material grade is required'],
     enum: {
-      values: ['A36', 'A572-50', '304SS', '316SS', '5052-H32', '6061-T6'],
+      values: ['A36', 'A572-50', 'A572-65', 'A572-80', 'A572-100', 'AR400', 'AR450', 'QT-100', 'Expanded', '304SS', '316SS', '5052-H32', '6061-T6'],
       message: '{VALUE} is not a valid material grade'
     }
   },
