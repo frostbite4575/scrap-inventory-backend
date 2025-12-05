@@ -3,6 +3,7 @@ const router = express.Router();
 const SawMaterial = require('../models/SawMaterial');
 const { authenticate } = require('../middleware/auth');
 const { getMaterialsByType, getMaterialById, getMaterialTypes } = require('../config/materialCatalog');
+const { getAreas, getSections, getBins, buildLocationString } = require('../config/locationCatalog');
 
 // For now, we'll skip authentication to make testing easier
 // Later we can uncomment the authenticate middleware
@@ -32,6 +33,22 @@ router.get('/catalog/:materialId', (req, res) => {
   }
 
   res.json(material);
+});
+
+// Location endpoints
+router.get('/locations/areas', (req, res) => {
+  const areas = getAreas();
+  res.json({ areas });
+});
+
+router.get('/locations/sections/:areaId', (req, res) => {
+  const sections = getSections(req.params.areaId);
+  res.json({ sections });
+});
+
+router.get('/locations/bins/:areaId/:sectionId', (req, res) => {
+  const bins = getBins(req.params.areaId, req.params.sectionId);
+  res.json({ bins });
 });
 
 // GET all saw materials (with filtering)
