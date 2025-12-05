@@ -523,110 +523,359 @@ const materialCatalog = {
   'square-stock': [
     {
       id: 'sq-1',
-      size: '1x1',
-      description: 'Square Stock 1" x 1"',
-      width: 1,
-      height: 1,
+      size: '3/8x3/8',
+      description: 'Square Stock 3/8" x 3/8"',
+      width: 0.375,
+      height: 0.375,
       grade: 'A36'
     },
     {
       id: 'sq-2',
-      size: '2x2',
-      description: 'Square Stock 2" x 2"',
-      width: 2,
-      height: 2,
+      size: '3/4x3/4',
+      description: 'Square Stock 3/4" x 3/4"',
+      width: 0.75,
+      height: 0.75,
       grade: 'A36'
     }
-    // Add more square stock as needed
   ],
 
   // Round stock available in shop
   'round-stock': [
     {
       id: 'round-1',
+      size: '1/4"',
+      description: 'Round Stock 1/4" diameter',
+      diameter: 0.25,
+      grade: 'A36'
+    },
+    {
+      id: 'round-2',
+      size: '3/8"',
+      description: 'Round Stock 3/8" diameter',
+      diameter: 0.375,
+      grade: 'A36'
+    },
+    {
+      id: 'round-3',
       size: '1/2"',
       description: 'Round Stock 1/2" diameter',
       diameter: 0.5,
       grade: 'A36'
     },
     {
-      id: 'round-2',
+      id: 'round-4',
+      size: '5/8"',
+      description: 'Round Stock 5/8" diameter',
+      diameter: 0.625,
+      grade: 'A36'
+    },
+    {
+      id: 'round-5',
       size: '3/4"',
       description: 'Round Stock 3/4" diameter',
       diameter: 0.75,
       grade: 'A36'
     },
     {
-      id: 'round-3',
+      id: 'round-6',
+      size: '7/8"',
+      description: 'Round Stock 7/8" diameter',
+      diameter: 0.875,
+      grade: 'A36'
+    },
+    {
+      id: 'round-7',
       size: '1"',
       description: 'Round Stock 1" diameter',
       diameter: 1,
       grade: 'A36'
+    },
+    {
+      id: 'round-8',
+      size: '1-3/16"',
+      description: 'Round Stock 1-3/16" diameter',
+      diameter: 1.1875,
+      grade: 'A36'
+    },
+    {
+      id: 'round-9',
+      size: '1-1/4"',
+      description: 'Round Stock 1-1/4" diameter',
+      diameter: 1.25,
+      grade: 'A36'
+    },
+    {
+      id: 'round-10',
+      size: '1-7/16"',
+      description: 'Round Stock 1-7/16" diameter',
+      diameter: 1.4375,
+      grade: 'A36'
+    },
+    {
+      id: 'round-11',
+      size: '1-1/2"',
+      description: 'Round Stock 1-1/2" diameter',
+      diameter: 1.5,
+      grade: 'A36'
+    },
+    {
+      id: 'round-12',
+      size: '1-13/16"',
+      description: 'Round Stock 1-13/16" diameter',
+      diameter: 1.8125,
+      grade: 'A36'
+    },
+    {
+      id: 'round-13',
+      size: '2"',
+      description: 'Round Stock 2" diameter',
+      diameter: 2,
+      grade: 'A36'
     }
-    // Add more round stock as needed
   ],
 
   // DOM tubing available in shop
   'dom': [
     {
       id: 'dom-1',
-      size: '1.5" OD x 0.120" wall',
-      description: 'DOM 1.5" OD x 0.120" wall',
-      outerDiameter: 1.5,
-      wallThickness: 0.120,
+      size: '1-1/4" OD x 0.095" wall',
+      description: 'DOM 1-1/4" OD x 0.095" wall',
+      outerDiameter: 1.25,
+      wallThickness: 0.095,
       grade: 'A513'
     },
     {
       id: 'dom-2',
-      size: '2" OD x 0.120" wall',
-      description: 'DOM 2" OD x 0.120" wall',
+      size: '1-1/2" OD x 0.25" wall',
+      description: 'DOM 1-1/2" OD x 0.25" wall',
+      outerDiameter: 1.5,
+      wallThickness: 0.25,
+      grade: 'A513'
+    },
+    {
+      id: 'dom-3',
+      size: '1-3/4" OD x 0.083" wall',
+      description: 'DOM 1-3/4" OD x 0.083" wall',
+      outerDiameter: 1.75,
+      wallThickness: 0.083,
+      grade: 'A513'
+    },
+    {
+      id: 'dom-4',
+      size: '1-3/4" OD x 1-5/8" ID x 16ga wall',
+      description: 'DOM 1-3/4" OD x 1-5/8" ID x 16ga wall',
+      outerDiameter: 1.75,
+      innerDiameter: 1.625,
+      wallThickness: 0.065,
+      grade: 'A513'
+    },
+    {
+      id: 'dom-5',
+      size: '1-3/4" OD x 0.25" wall',
+      description: 'DOM 1-3/4" OD x 0.25" wall',
+      outerDiameter: 1.75,
+      wallThickness: 0.25,
+      grade: 'A513'
+    },
+    {
+      id: 'dom-6',
+      size: '1-3/4" OD x 0.5" wall',
+      description: 'DOM 1-3/4" OD x 0.5" wall',
+      outerDiameter: 1.75,
+      wallThickness: 0.5,
+      grade: 'A513'
+    },
+    {
+      id: 'dom-7',
+      size: '1-7/8" OD x 1-1/8" ID x 3/8" wall',
+      description: 'DOM 1-7/8" OD x 1-1/8" ID x 3/8" wall',
+      outerDiameter: 1.875,
+      innerDiameter: 1.125,
+      wallThickness: 0.375,
+      grade: 'A513'
+    },
+    {
+      id: 'dom-8',
+      size: '2" OD x 0.25" wall',
+      description: 'DOM 2" OD x 0.25" wall',
       outerDiameter: 2,
-      wallThickness: 0.120,
+      wallThickness: 0.25,
+      grade: 'A513'
+    },
+    {
+      id: 'dom-9',
+      size: '2" OD x 1" ID x 1/2" wall',
+      description: 'DOM 2" OD x 1" ID x 1/2" wall',
+      outerDiameter: 2,
+      innerDiameter: 1,
+      wallThickness: 0.5,
+      grade: 'A513'
+    },
+    {
+      id: 'dom-10',
+      size: '2-1/4" OD x 0.375" wall',
+      description: 'DOM 2-1/4" OD x 0.375" wall',
+      outerDiameter: 2.25,
+      wallThickness: 0.375,
+      grade: 'A513'
+    },
+    {
+      id: 'dom-11',
+      size: '2-1/2" OD x 0.5" wall',
+      description: 'DOM 2-1/2" OD x 0.5" wall',
+      outerDiameter: 2.5,
+      wallThickness: 0.5,
+      grade: 'A513'
+    },
+    {
+      id: 'dom-12',
+      size: '2-3/4" OD x 0.375" wall',
+      description: 'DOM 2-3/4" OD x 0.375" wall',
+      outerDiameter: 2.75,
+      wallThickness: 0.375,
+      grade: 'A513'
+    },
+    {
+      id: 'dom-13',
+      size: '3" OD x 0.5" wall',
+      description: 'DOM 3" OD x 0.5" wall',
+      outerDiameter: 3,
+      wallThickness: 0.5,
+      grade: 'A513'
+    },
+    {
+      id: 'dom-14',
+      size: '5" OD x 2" ID x 1-1/2" wall',
+      description: 'DOM 5" OD x 2" ID x 1-1/2" wall',
+      outerDiameter: 5,
+      innerDiameter: 2,
+      wallThickness: 1.5,
       grade: 'A513'
     }
-    // Add more DOM as needed
   ],
 
   // Pipe available in shop
   'pipe': [
     {
       id: 'pipe-1',
-      size: '1/2" Schedule 40',
-      description: 'Pipe 1/2" Schedule 40',
-      nominalSize: 0.5,
-      schedule: 40,
+      size: '3/4" IPS',
+      description: 'Pipe 3/4" IPS',
+      nominalSize: 0.75,
       grade: 'A53'
     },
     {
       id: 'pipe-2',
-      size: '3/4" Schedule 40',
-      description: 'Pipe 3/4" Schedule 40',
-      nominalSize: 0.75,
-      schedule: 40,
+      size: '1" IPS',
+      description: 'Pipe 1" IPS',
+      nominalSize: 1,
+      grade: 'A53'
+    },
+    {
+      id: 'pipe-3',
+      size: '1-1/4" IPS',
+      description: 'Pipe 1-1/4" IPS',
+      nominalSize: 1.25,
+      grade: 'A53'
+    },
+    {
+      id: 'pipe-4',
+      size: '3" IPS',
+      description: 'Pipe 3" IPS',
+      nominalSize: 3,
+      grade: 'A53'
+    },
+    {
+      id: 'pipe-5',
+      size: '3-1/2" IPS',
+      description: 'Pipe 3-1/2" IPS',
+      nominalSize: 3.5,
+      grade: 'A53'
+    },
+    {
+      id: 'pipe-6',
+      size: '5" IPS',
+      description: 'Pipe 5" IPS',
+      nominalSize: 5,
       grade: 'A53'
     }
-    // Add more pipe as needed
   ],
 
   // Channels available in shop
   'channel': [
     {
       id: 'channel-1',
-      size: '6@8.2',
-      description: 'Channel 6" @ 8.2 lbs/ft',
-      depth: 6,
-      weightPerFoot: 8.2,
+      size: '3@4.10',
+      description: 'Channel 3" @ 4.10 lbs/ft',
+      depth: 3,
+      weightPerFoot: 4.10,
       grade: 'A36'
     },
     {
       id: 'channel-2',
+      size: '4@5.40',
+      description: 'Channel 4" @ 5.40 lbs/ft',
+      depth: 4,
+      weightPerFoot: 5.40,
+      grade: 'A36'
+    },
+    {
+      id: 'channel-3',
       size: '8@11.5',
       description: 'Channel 8" @ 11.5 lbs/ft',
       depth: 8,
       weightPerFoot: 11.5,
       grade: 'A36'
+    },
+    {
+      id: 'channel-4',
+      size: '8@20',
+      description: 'Channel 8" @ 20 lbs/ft',
+      depth: 8,
+      weightPerFoot: 20,
+      grade: 'A36'
+    },
+    {
+      id: 'channel-5',
+      size: '1x1/2x1/8',
+      description: 'Channel 1" x 1/2" x 1/8"',
+      depth: 1,
+      flange: 0.5,
+      web: 0.125,
+      grade: 'A36'
+    },
+    {
+      id: 'channel-6',
+      size: '1-1/4',
+      description: 'Channel 1-1/4"',
+      depth: 1.25,
+      grade: 'A36'
+    },
+    {
+      id: 'channel-7',
+      size: '1-3/8x1-3/8',
+      description: 'Channel 1-3/8" x 1-3/8"',
+      depth: 1.375,
+      flange: 1.375,
+      grade: 'A36'
+    },
+    {
+      id: 'channel-8',
+      size: '1-3/4x1x3/4',
+      description: 'Channel 1-3/4" x 1" x 3/4"',
+      depth: 1.75,
+      flange: 1,
+      web: 0.75,
+      grade: 'A36'
+    },
+    {
+      id: 'channel-9',
+      size: '2x1x1/8',
+      description: 'Channel 2" x 1" x 1/8"',
+      depth: 2,
+      flange: 1,
+      web: 0.125,
+      grade: 'A36'
     }
-    // Add more channels as needed
   ]
 };
 
