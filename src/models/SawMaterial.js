@@ -1,12 +1,19 @@
 const mongoose = require('mongoose');
 
 const sawMaterialSchema = new mongoose.Schema({
+  // Reference to the material catalog entry
+  catalogMaterialId: {
+    type: String,
+    required: [true, 'Catalog material ID is required'],
+    trim: true
+  },
+
   // Material type determines which dimension fields are used
   materialType: {
     type: String,
     required: [true, 'Material type is required'],
     enum: {
-      values: ['angle', 'tube', 'square-stock', 'round-stock', 'dom', 'pipe', 'i-beam', 'channel'],
+      values: ['angle', 'tube', 'square-stock', 'round-stock', 'dom', 'pipe', 'i-beam', 'channel', 'flat-bar'],
       message: '{VALUE} is not a valid material type'
     }
   },
@@ -89,6 +96,13 @@ const sawMaterialSchema = new mongoose.Schema({
     trim: true
   },
 
+  reservationId: {
+    type: String,
+    trim: true,
+    sparse: true,
+    unique: true
+  },
+
   reservedDate: {
     type: Date
   },
@@ -125,15 +139,19 @@ sawMaterialSchema.virtual('formattedDimensions').get(function() {
       return `${this.dim1}@${this.dim2}`;
     case 'channel':
       return `${this.dim1}@${this.dim2}`;
+    case 'flat-bar':
+      return `${this.dim1}x${this.dim2}`;
     default:
       return 'N/A';
   }
 });
 
 // Indexes for faster searching
+sawMaterialSchema.index({ catalogMaterialId: 1, status: 1 });
 sawMaterialSchema.index({ materialType: 1, status: 1 });
 sawMaterialSchema.index({ materialGrade: 1, status: 1 });
 sawMaterialSchema.index({ status: 1 });
 sawMaterialSchema.index({ location: 1 });
+sawMaterialSchema.index({ reservationId: 1 });
 
 module.exports = mongoose.model('SawMaterial', sawMaterialSchema);
