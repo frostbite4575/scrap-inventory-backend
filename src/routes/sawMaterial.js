@@ -1,13 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const SawMaterial = require('../models/SawMaterial');
+const ActivityLog = require('../models/ActivityLog');
 const { authenticate } = require('../middleware/auth');
 const { getMaterialsByType, getMaterialById, getMaterialTypes } = require('../config/materialCatalog');
 const { getAreas, getSections, getBins, buildLocationString } = require('../config/locationCatalog');
 const { generateReservationId } = require('../utils/reservationId');
-
-// For now, we'll skip authentication to make testing easier
-// Later we can uncomment the authenticate middleware
 
 // GET material catalog - all available materials in shop
 // MUST be before /:id route to avoid conflict
@@ -53,7 +51,7 @@ router.get('/locations/bins/:areaId/:sectionId', (req, res) => {
 });
 
 // GET all saw materials (with filtering)
-router.get('/', async (req, res) => {
+router.get('/', authenticate, async (req, res) => {
   try {
     const {
       materialType,
@@ -95,7 +93,7 @@ router.get('/', async (req, res) => {
 });
 
 // GET single saw material by ID
-router.get('/:id', async (req, res) => {
+router.get('/:id', authenticate, async (req, res) => {
   try {
     const sawMaterial = await SawMaterial.findById(req.params.id);
 
@@ -110,7 +108,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // POST create new saw material
-router.post('/', async (req, res) => {
+router.post('/', authenticate, async (req, res) => {
   try {
     // Verify the catalog material exists
     const catalogMaterial = getMaterialById(req.body.catalogMaterialId);
@@ -128,11 +126,28 @@ router.post('/', async (req, res) => {
       dimensionDisplay: req.body.dimensionDisplay,
       materialGrade: req.body.materialGrade,
       location: req.body.location,
-      addedBy: req.body.addedBy || 'Unknown', // In production, get from req.user
+      addedBy: req.user.username,
       notes: req.body.notes
     });
 
     const newSawMaterial = await sawMaterial.save();
+
+    // Log the activity
+    await ActivityLog.create({
+      userId: req.user._id,
+      username: req.user.username,
+      action: 'add',
+      entityType: 'saw_material',
+      entityId: newSawMaterial._id,
+      details: {
+        materialType: newSawMaterial.materialType,
+        length: newSawMaterial.length,
+        dimensionDisplay: newSawMaterial.dimensionDisplay,
+        materialGrade: newSawMaterial.materialGrade,
+        location: newSawMaterial.location
+      }
+    });
+
     res.status(201).json(newSawMaterial);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -140,7 +155,7 @@ router.post('/', async (req, res) => {
 });
 
 // PUT update saw material
-router.put('/:id', async (req, res) => {
+router.put('/:id', authenticate, async (req, res) => {
   try {
     const sawMaterial = await SawMaterial.findById(req.params.id);
 
@@ -167,7 +182,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // POST reserve a saw material for a job
-router.post('/:id/reserve', async (req, res) => {
+router.post('/:id/reserve', authenticate, async (req, res) => {
   try {
     const sawMaterial = await SawMaterial.findById(req.params.id);
 
@@ -190,12 +205,31 @@ router.post('/:id/reserve', async (req, res) => {
       if (!existing) isUnique = true;
     }
 
+    const jobNumber = req.body.jobNumber || req.body.reservedFor;
     sawMaterial.status = 'reserved';
-    sawMaterial.reservedFor = req.body.jobNumber || req.body.reservedFor;
+    sawMaterial.reservedFor = jobNumber;
     sawMaterial.reservationId = reservationId;
     sawMaterial.reservedDate = new Date();
 
     const updatedSawMaterial = await sawMaterial.save();
+
+    // Log the activity
+    await ActivityLog.create({
+      userId: req.user._id,
+      username: req.user.username,
+      action: 'reserve',
+      entityType: 'saw_material',
+      entityId: updatedSawMaterial._id,
+      details: {
+        jobNumber,
+        reservationId,
+        materialType: updatedSawMaterial.materialType,
+        materialGrade: updatedSawMaterial.materialGrade,
+        dimensionDisplay: updatedSawMaterial.dimensionDisplay,
+        length: updatedSawMaterial.length
+      }
+    });
+
     res.json(updatedSawMaterial);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -203,7 +237,7 @@ router.post('/:id/reserve', async (req, res) => {
 });
 
 // POST unreserve a saw material
-router.post('/:id/unreserve', async (req, res) => {
+router.post('/:id/unreserve', authenticate, async (req, res) => {
   try {
     const sawMaterial = await SawMaterial.findById(req.params.id);
 
@@ -217,12 +251,34 @@ router.post('/:id/unreserve', async (req, res) => {
       });
     }
 
+    const previousReservation = {
+      reservedFor: sawMaterial.reservedFor,
+      reservationId: sawMaterial.reservationId,
+      reservedDate: sawMaterial.reservedDate
+    };
+
     sawMaterial.status = 'available';
     sawMaterial.reservedFor = null;
     sawMaterial.reservationId = null;
     sawMaterial.reservedDate = null;
 
     const updatedSawMaterial = await sawMaterial.save();
+
+    // Log the activity
+    await ActivityLog.create({
+      userId: req.user._id,
+      username: req.user.username,
+      action: 'unreserve',
+      entityType: 'saw_material',
+      entityId: updatedSawMaterial._id,
+      details: {
+        previousReservation,
+        materialType: updatedSawMaterial.materialType,
+        materialGrade: updatedSawMaterial.materialGrade,
+        dimensionDisplay: updatedSawMaterial.dimensionDisplay
+      }
+    });
+
     res.json(updatedSawMaterial);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -230,7 +286,7 @@ router.post('/:id/unreserve', async (req, res) => {
 });
 
 // DELETE mark saw material as used (soft delete)
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticate, async (req, res) => {
   try {
     const sawMaterial = await SawMaterial.findById(req.params.id);
 
@@ -238,11 +294,35 @@ router.delete('/:id', async (req, res) => {
       return res.status(404).json({ message: 'Saw material not found' });
     }
 
+    const previousStatus = sawMaterial.status;
+    const reservationInfo = sawMaterial.status === 'reserved' ? {
+      reservedFor: sawMaterial.reservedFor,
+      reservationId: sawMaterial.reservationId
+    } : null;
+
     // Mark as used instead of deleting
     sawMaterial.status = 'used';
     sawMaterial.usedDate = new Date();
 
     await sawMaterial.save();
+
+    // Log the activity
+    await ActivityLog.create({
+      userId: req.user._id,
+      username: req.user.username,
+      action: 'mark_used',
+      entityType: 'saw_material',
+      entityId: sawMaterial._id,
+      details: {
+        previousStatus,
+        reservationInfo,
+        materialType: sawMaterial.materialType,
+        materialGrade: sawMaterial.materialGrade,
+        dimensionDisplay: sawMaterial.dimensionDisplay,
+        length: sawMaterial.length
+      }
+    });
+
     res.json({ message: 'Saw material marked as used', data: sawMaterial });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -273,3 +353,6 @@ router.get('/meta/grades', (req, res) => {
 });
 
 module.exports = router;
+
+
+
